@@ -1,0 +1,27 @@
+operator:
+  replicas: 1
+kubeProxyReplacement: "true"
+gatewayAPI:
+  enabled: true
+  # Enable Backend Protocol selection support (GEP-1911) via appProtocol.
+  # When enabled, Cilium reads the appProtocol field on Service ports to determine
+  # the backend protocol (e.g. kubernetes.io/h2c for HTTP/2 cleartext).
+  enableAppProtocol: true
+  # Enable ALPN for all Gateway API listeners. Envoy will negotiate HTTP/2
+  # first, then fall back to HTTP/1.1. Also enables appProtocol support.
+  enableAlpn: true
+  hostNetwork:
+    enabled: true
+    nodes:
+      matchLabels:
+        ingress: true
+ipam:
+  mode: kubernetes
+hubble:
+  enabled: true
+  relay:
+    enabled: true
+  ui:
+    enabled: true
+prometheus:
+  enabled: true

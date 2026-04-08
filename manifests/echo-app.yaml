@@ -1,0 +1,106 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: echo-app
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo-app
+  namespace: echo-app
+  labels:
+    app: echo-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: echo-app
+  template:
+    metadata:
+      labels:
+        app: echo-app
+    spec:
+      containers:
+      - name: echo-app
+        image: ghcr.io/philipschmid/echo-app:1.1.0
+        ports:
+        - name: http
+          protocol: TCP
+          containerPort: 8080
+        - name: https
+          protocol: TCP
+          containerPort: 8443
+        - name: metrics
+          protocol: TCP
+          containerPort: 3000
+        env:
+        - name: ECHO_APP_MESSAGE
+          value: "http2-demo"
+        - name: ECHO_APP_PRINT_HTTP_REQUEST_HEADERS
+          value: "true"
+        - name: ECHO_APP_H2C
+          value: "true"
+        - name: ECHO_APP_TLS
+          value: "true"
+        - name: ECHO_APP_NODE
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: metrics
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-app
+  namespace: echo-app
+spec:
+  selector:
+    app: echo-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+  - name: https
+    protocol: TCP
+    port: 8443
+    targetPort: 8443
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-app-h2c
+  namespace: echo-app
+spec:
+  selector:
+    app: echo-app
+  ports:
+  - name: http
+    protocol: TCP
+    port: 8080
+    targetPort: 8080
+    # Instructs Cilium (via GEP-1911 / enableAppProtocol) to use HTTP/2
+    # cleartext (h2c) for the upstream connection from the Gateway to this
+    # Service.
+    appProtocol: kubernetes.io/h2c
+  type: ClusterIP
