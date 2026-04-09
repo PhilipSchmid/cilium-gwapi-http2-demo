@@ -22,6 +22,10 @@ nodes:
     hostPort: 8444
     listenAddress: 127.0.0.1
     protocol: TCP
+  - containerPort: 50051
+    hostPort: 50051
+    listenAddress: 127.0.0.1
+    protocol: TCP
 networking:
   disableDefaultCNI: true
   kubeProxyMode: none

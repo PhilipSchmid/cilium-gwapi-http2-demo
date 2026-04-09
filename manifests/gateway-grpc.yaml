@@ -1,0 +1,50 @@
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: cilium-gateway-grpc
+  namespace: kube-system
+spec:
+  gatewayClassName: cilium
+  listeners:
+  - name: grpc
+    protocol: HTTP
+    port: 50051
+    allowedRoutes:
+      namespaces:
+        from: All
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: echo-app-grpc
+  namespace: echo-app
+spec:
+  parentRefs:
+  - name: cilium-gateway-grpc
+    namespace: kube-system
+  hostnames:
+  - "echo-grpc.127.0.0.1.sslip.io"
+  rules:
+  - backendRefs:
+    - name: echo-grpc
+      namespace: echo-app
+      port: 50051
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: GRPCRoute
+metadata:
+  name: echo-app-grpc-tls
+  namespace: echo-app
+spec:
+  parentRefs:
+  - name: cilium-gateway
+    namespace: kube-system
+    sectionName: https
+  hostnames:
+  - "echo-grpc-tls.127.0.0.1.sslip.io"
+  rules:
+  - backendRefs:
+    - name: echo-grpc
+      namespace: echo-app
+      port: 50051
