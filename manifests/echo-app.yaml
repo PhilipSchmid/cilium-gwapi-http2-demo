@@ -31,6 +31,9 @@ spec:
         - name: https
           protocol: TCP
           containerPort: 8443
+        - name: grpc
+          protocol: TCP
+          containerPort: 50051
         - name: metrics
           protocol: TCP
           containerPort: 3000
@@ -42,6 +45,8 @@ spec:
         - name: ECHO_APP_H2C
           value: "true"
         - name: ECHO_APP_TLS
+          value: "true"
+        - name: ECHO_APP_GRPC
           value: "true"
         - name: ECHO_APP_NODE
           valueFrom:
@@ -84,6 +89,24 @@ spec:
     protocol: TCP
     port: 8443
     targetPort: 8443
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-grpc
+  namespace: echo-app
+spec:
+  selector:
+    app: echo-app
+  ports:
+  - name: grpc
+    protocol: TCP
+    port: 50051
+    targetPort: 50051
+    # Instructs Cilium (via GEP-1911 / enableAppProtocol) to use HTTP/2
+    # cleartext (h2c) for the upstream connection — required for gRPC.
+    appProtocol: kubernetes.io/h2c
   type: ClusterIP
 ---
 apiVersion: v1
