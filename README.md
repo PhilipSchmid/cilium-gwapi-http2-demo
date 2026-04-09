@@ -9,6 +9,8 @@ The Cilium Gateway API implementation (backed by Envoy) supports HTTP/2 via two 
 - **`gatewayAPI.enableAlpn`**: Envoy advertises `h2` and `http/1.1` via ALPN on all Gateway listeners and selects HTTP/2 when the client supports it (downstream leg).
 - **`gatewayAPI.enableAppProtocol`**: Enables Backend Protocol Selection ([GEP-1911](https://gateway-api.sigs.k8s.io/geps/gep-1911/)). Cilium reads the `appProtocol` field on Service ports to determine the protocol used for upstream connections (Gateway → backend leg).
 
+> **Note:** In the Cilium Helm chart, `enableAlpn: true` implicitly forces `enableAppProtocol` on as well — regardless of how `enableAppProtocol` is set. Setting `enableAppProtocol: false` therefore has no effect when `enableAlpn: true`.
+
 The backend used throughout this demo is [`echo-app`](https://github.com/PhilipSchmid/echo-app), a Go application that echoes back request details as JSON — including the HTTP version seen by the pod — making it easy to observe protocol behaviour at every hop.
 
 ## Scenarios
